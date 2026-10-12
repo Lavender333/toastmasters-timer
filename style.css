@@ -155,3 +155,11 @@ table{min-width:660px}
  .controls .primary{flex:1 1 140px}
 }
 @media(forced-colors:active){#stateBadge,.result-badge,input,select,textarea{border:1px solid CanvasText}#shape{color:CanvasText!important}#bar{background:Highlight}}
+
+#customTiming .custom-fields{grid-template-columns:repeat(3,minmax(0,1fr));margin-top:8px}
+#customTiming .settings-note{margin-top:4px}
+.timer-error{padding:12px 14px;background:#f3dfda;color:#7c3026;border:1px solid #a84539;border-radius:8px;font-size:14px}
+input[aria-invalid=true]{border:2px solid #a84539}
+#soundNotice{display:block}
+button:not(.text-button):not(.primary){border-color:#7c9298}
+@media(max-width:760px){#customTiming .custom-fields{grid-template-columns:1fr}}
