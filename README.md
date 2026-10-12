@@ -1,4 +1,4 @@
-# Toastmasters Timer
+# Toasty Timer
 
 A browser-local speech timer built with HTML, CSS, and vanilla JavaScript. No frameworks, external libraries, CDNs, or backend are required.
 
