@@ -94,7 +94,7 @@ body.speaker-view #stateBadge{font-size:22px;gap:18px}
  .intro h1{font-size:28px;max-width:330px}
  .intro p{font-size:13px}
  .meeting,.timer{padding:18px}
- .meeting .fields{grid-template-columns:1fr 1fr;gap:12px}
+ .meeting .fields{grid-template-columns:minmax(0,1fr);gap:16px}
  .meeting label{min-width:0}
  .meeting input{padding:10px 8px;font-size:13px}
  .workspace{grid-template-columns:1fr}
@@ -163,3 +163,32 @@ input[aria-invalid=true]{border:2px solid #a84539}
 #soundNotice{display:block}
 button:not(.text-button):not(.primary){border-color:#7c9298}
 @media(max-width:760px){#customTiming .custom-fields{grid-template-columns:1fr}}
+
+/* Comfortable form widths from phones through desktop */
+.fields,.setup{grid-template-columns:minmax(0,1fr) minmax(0,2fr)}
+.fields>label,.setup>label,.workspace>*{min-width:0}
+input,select{max-width:100%;min-width:0}
+.meeting input{padding:12px 13px;min-height:48px}
+.table-wrap{width:100%;max-width:100%}
+@media(max-width:960px){
+ .workspace{grid-template-columns:minmax(0,1fr)}
+ .guide{display:none}
+}
+@media(max-width:760px){
+ .meeting .fields,.setup,#customTiming .custom-fields{grid-template-columns:minmax(0,1fr);gap:16px}
+ .meeting input{font-size:16px;padding:12px 13px;width:100%}
+ .meeting>.section-label{display:block}
+ .meeting>.text-button{float:none;margin:8px 0 2px;padding-left:0}
+ .meeting .fields{margin-top:14px}
+ .timer-top{gap:8px}
+ .controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+ .controls button{width:100%;min-height:48px;padding:11px 8px}
+ #clock{font-size:clamp(72px,22vw,96px)}
+ .site-nav{margin-right:0;gap:16px}
+}
+@media(max-width:340px){
+ header{padding-left:16px;padding-right:16px}
+ .brand{font-size:17px}
+ .site-nav{gap:12px}
+ .thresholds span{font-size:10px}
+}
