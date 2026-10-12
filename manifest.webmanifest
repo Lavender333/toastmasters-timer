@@ -1,0 +1,25 @@
+{
+  "id": "./",
+  "name": "Toasty Timer",
+  "short_name": "Toasty Timer",
+  "description": "An accessible meeting timer with clear signals and offline reports.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#eaf0f2",
+  "theme_color": "#eaf0f2",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
