@@ -34,7 +34,7 @@ $('soundEnabled').onchange=()=>{save();if($('soundEnabled').checked)enableAudio(
 if(running){const activeTimes=pmTimerV5.active.times||categories[pmTimerV5.active.category];maximumChimed=(Date.now()-pmTimerV5.active.startedAt)/1000>=activeTimes[2];$('soundNotice').textContent='Tap Test sound to enable audio after reloading.'}
 
 function thresholds(){const timing=currentTimes();if(!validTimes(timing))return;const [g,y,r]=timing;$('g').textContent=fmt(g);$('y').textContent=fmt(y);$('r').textContent=fmt(r);$('progress').setAttribute('aria-valuemax',r)}
-function lock(){['participant','category','date','timerName','customG','customY','customR','earlyGrace','newMeeting','restore'].forEach(id=>$(id).disabled=running);$('start').disabled=running;$('stop').disabled=!running;$('next').disabled=running}
+function lock(){['participant','category','date','timerName','customG','customY','customR','earlyGrace','newMeeting'].forEach(id=>$(id).disabled=running);$('start').disabled=running;$('stop').disabled=!running;$('next').disabled=running}
 function paint(){if(running)elapsed=Math.max(0,Math.floor((Date.now()-pmTimerV5.active.startedAt)/1000));const timing=currentTimes();if(!validTimes(timing))return;const [g,y,r]=timing;if(running&&!maximumChimed&&elapsed>=r){maximumChimed=true;gentleChime()}let color=elapsed>=r?'red':elapsed>=y?'yellow':elapsed>=g?'green':'';const state=elapsed>r+30?'exceeded':elapsed>r?'grace':color||'early';document.body.dataset.signal=color;$('clock').textContent=fmt(elapsed);$('shape').textContent=color==='green'?'●':color==='yellow'?'◆':color==='red'?'■':'—';$('signal').textContent=!running&&elapsed===0?'Ready when you are':color==='green'?'Minimum time reached':color==='yellow'?'Wrap up':color==='red'?'Official maximum reached':'Timing in progress';$('status').textContent=!running&&elapsed===0?'Press Start to begin timing':state==='exceeded'?'Exceeded Grace':state==='grace'?'30-Second Grace':elapsed>=g?'Within Time':'Before minimum time';$('over').textContent=state==='exceeded'?`Over the 30-second grace by ${fmt(elapsed-r-30)}`:state==='grace'?`Grace ends at ${fmt(r+30)}`:'';$('bar').style.width=Math.min(100,elapsed/r*100)+'%';$('progress').setAttribute('aria-valuenow',Math.min(elapsed,r));$('progress').setAttribute('aria-valuetext',`${fmt(elapsed)} elapsed; maximum ${fmt(r)}`);if(state!==lastState){if(running)announce(state==='exceeded'?'Exceeded the 30-second grace. Timer continues running.':state==='grace'?'30-second grace period.':$('signal').textContent);lastState=state}}
 $('category').onchange=()=>{clearTimerError();save();elapsed=0;$('customTiming').hidden=$('category').value!=='Custom';if($('category').value==='Custom')$('timingSettings').open=true;$('presetNote').textContent=['General Evaluator','Meeting Introduction'].includes($('category').value)?'Suggested club timing. Select Custom to match your agenda.':'';thresholds();paint()};$('start').onclick=()=>{clearTimerError();if(!$('participant').value.trim()){showTimerError('Enter a participant name, then press Start timer.','participant');return}const times=currentTimes();if(!validTimes(times)){$('timingSettings').open=true;const bad=times.findIndex(t=>!Number.isSafeInteger(t)||t<=0);showTimerError('Use minutes (5) or mm:ss (5:30). Green must be earlier than Yellow, and Yellow earlier than Red.',['customG','customY','customR'][bad<0?0:bad]);return}if($('soundEnabled').checked)enableAudio();maximumChimed=false;if($('category').value==='Custom')['customG','customY','customR'].forEach((id,i)=>$(id).value=fmt(times[i]));$('timingSettings').open=false;elapsed=0;lastState='';pmTimerV5.active={name:$('participant').value.trim(),category:$('category').value,times:times.slice(),earlyGrace:$('earlyGrace').checked,startedAt:Date.now(),date:$('date').value,timerName:$('timerName').value};running=true;save();lock();paint();acquireWakeLock();if(window.matchMedia('(max-width:760px)').matches){document.body.classList.add('speaker-view');$('speaker').setAttribute('aria-pressed','true');setFocusView(true);$('timer').scrollTop=0}$('stop').focus()};
 $('stop').onclick=()=>{paint();const a=pmTimerV5.active;pmTimerV5.entries.push({id:Date.now()+Math.random(),name:a.name,category:a.category,times:a.times,earlyGrace:a.earlyGrace,seconds:elapsed,date:a.date,timerName:a.timerName});running=false;releaseWakeLock();pmTimerV5.active=null;save();lock();render();announce(`Logged ${a.name}, ${fmt(elapsed)}, ${result(elapsed,a.category,a.times,a.earlyGrace)}.`);$('start').focus()};
@@ -75,7 +75,7 @@ function setFocusView(enabled){
  const timer=$('timer'),button=$('fullscreen');
  if(enabled&&!document.body.classList.contains('focus-view'))focusScroll=window.scrollY;if(!enabled){document.body.classList.remove('speaker-view');$('speaker').setAttribute('aria-pressed','false')}
  document.body.classList.toggle('focus-view',enabled);
- document.querySelectorAll('header,.intro,.meeting,.guide,.logs,.app-tools,footer,.skip').forEach(el=>{el.inert=enabled;});
+ document.querySelectorAll('header,.intro,.meeting,.guide,.logs,footer,.skip').forEach(el=>{el.inert=enabled;});
  button.textContent=enabled?'Exit focus view ✕':'Focus view ↗';
  button.setAttribute('aria-pressed',String(enabled));
  if(enabled){timer.scrollTop=0;button.focus();}else{window.scrollTo(0,focusScroll);button.focus();}
@@ -100,37 +100,13 @@ async function acquireWakeLock(){
  if(!running||!$('keepAwake').checked||document.visibilityState==='hidden'||wakeRequestPending||wakeLock)return;
  if(!navigator.wakeLock){$('wakeStatus').textContent='Keep awake is unavailable in this browser. Keep the screen unlocked during speeches.';return}
  wakeRequestPending=true;
- try{const sentinel=await navigator.wakeLock.request('screen');if(!running||!$('keepAwake').checked){await sentinel.release();return}wakeLock=sentinel;$('wakeStatus').textContent='Screen stays awake while this timer is visible.';sentinel.addEventListener('release',()=>{if(wakeLock===sentinel)wakeLock=null;if(running)$('wakeStatus').textContent='Screen lock released. Keep this app visible to continue.'})}
+ try{const sentinel=await navigator.wakeLock.request('screen');if(!running||!$('keepAwake').checked){await sentinel.release();return}wakeLock=sentinel;$('wakeStatus').textContent='Screen stays awake while this timer is visible.';sentinel.addEventListener('release',()=>{if(wakeLock===sentinel)wakeLock=null;if(running)$('wakeStatus').textContent='Screen lock released. Keep this timer visible to continue.'})}
  catch{$('wakeStatus').textContent='Keep awake could not be enabled. Check your screen-lock settings.'}finally{wakeRequestPending=false}
 }
 function releaseWakeLock(){const sentinel=wakeLock;wakeLock=null;if(sentinel)sentinel.release().catch(()=>{});$('wakeStatus').textContent=''}
 $('keepAwake').onchange=()=>{save();if($('keepAwake').checked)acquireWakeLock();else releaseWakeLock()};
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){paint();if(running)acquireWakeLock()}});
-function validateBackup(data){
- if(!data||data.format!=='toasty-timer-backup'||data.version!==1||!Array.isArray(data.entries)||data.entries.length>10000)throw Error('Choose a Toasty Timer backup JSON file.');
- return data.entries.map(entry=>{
-  if(!entry||typeof entry.name!=='string'||!entry.name.trim()||entry.name.length>100||typeof entry.timerName!=='string'||entry.timerName.length>100||typeof entry.date!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(entry.date)||!Object.hasOwn(categories,entry.category)||!Number.isSafeInteger(entry.seconds)||entry.seconds<0||!(typeof entry.id==='number'||typeof entry.id==='string'))throw Error('This backup contains an invalid meeting entry.');
-  const times=entry.times||categories[entry.category];if(!Array.isArray(times)||times.length!==3||!validTimes(times))throw Error('This backup contains invalid timing thresholds.');
-  return {id:entry.id,name:entry.name,category:entry.category,date:entry.date,timerName:entry.timerName,seconds:entry.seconds,times:times.slice(),earlyGrace:!!entry.earlyGrace};
- });
-}
-$('backup').onclick=()=>{const content={format:'toasty-timer-backup',version:1,createdAt:new Date().toISOString(),meetingInfo:tmMeetingInfo,entries:pmTimerV5.entries};download(new Blob([JSON.stringify(content,null,2)],{type:'application/json'}),'json','-backup');$('backupStatus').textContent='Backup downloaded. Store it somewhere safe.'};
-$('restore').onclick=()=>{if(!running)$('restoreFile').click()};
-$('restoreFile').onchange=async()=>{
- const file=$('restoreFile').files[0];if(!file)return;if(running){$('backupStatus').textContent='Stop the timer before restoring a backup.';return}
- try{if(file.size>8*1024*1024)throw Error('Choose a backup smaller than 8 MB.');const entries=validateBackup(JSON.parse(await file.text())),existing=new Set(pmTimerV5.entries.map(e=>String(e.id)));let added=0;entries.forEach(e=>{if(!existing.has(String(e.id))){pmTimerV5.entries.push(e);existing.add(String(e.id));added++}});save();render();$('backupStatus').textContent=added+' meeting entries restored. Select a report date to view them.';announce($('backupStatus').textContent)}
- catch(error){$('backupStatus').textContent=error.message||'The backup could not be read.'}finally{$('restoreFile').value=''}
-};
-let installPrompt=null;
-window.addEventListener('beforeinstallprompt',event=>{event.preventDefault();installPrompt=event});
-$('installApp').onclick=async()=>{if(installPrompt){await installPrompt.prompt();installPrompt=null}else $('installHelp').hidden=!$('installHelp').hidden};
-window.addEventListener('appinstalled',()=>{$('installApp').hidden=true;announce('Toasty Timer installed')});
-if(window.matchMedia('(display-mode: standalone)').matches)$('installApp').hidden=true;
-if('serviceWorker' in navigator&&window.isSecureContext){
- navigator.serviceWorker.register('sw.js').then(async registration=>{await navigator.serviceWorker.ready;$('offlineStatus').textContent='Offline timer ready. Open once online to save the app on this device.';if(registration.waiting)announce('An app update is ready. Reload when convenient.')}).catch(()=>{$('offlineStatus').textContent='Offline setup could not finish. Reopen while connected to try again.'});
-}else $('offlineStatus').textContent='Installation and offline support require the secure HTTPS website.';
-window.addEventListener('offline',()=>{$('offlineStatus').textContent='You are offline. Timing and saved records still work if offline setup completed.'});
-window.addEventListener('online',()=>{$('offlineStatus').textContent='You are online.'});
+if('serviceWorker' in navigator&&window.isSecureContext){navigator.serviceWorker.register('sw.js').catch(()=>{});}
 if(running)acquireWakeLock();
 
 $('customTiming').hidden=$('category').value!=='Custom';if($('category').value==='Custom')$('timingSettings').open=true;['participant','customG','customY','customR'].forEach(id=>$(id).addEventListener('keydown',event=>{if(event.key==='Enter'&&!running){event.preventDefault();$('start').click()}}));setInterval(paint,200);thresholds();lock();paint();render();save();

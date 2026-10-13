@@ -1,5 +1,5 @@
 'use strict';
-const CACHE='toasty-timer-app-v1';
+const CACHE='toasty-timer-offline-v2';
 const FILES=['./','index.html','about.html','thanks.html','style.css','app.js','manifest.webmanifest','icons/icon-192.png','icons/icon-512.png','icons/icon-180.png','assets/antoinette.jpg'];
 self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(FILES)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key.startsWith('toasty-timer-')&&key!==CACHE).map(key=>caches.delete(key)))).then(()=>self.clients.claim()))});
